@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>13. WeekendFinder</title>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root { --ac:#ff3535; }
+html { font-size:16px; }
+body {
+  background:#07070d; color:#e8e8f0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+
+/* SCAN */
+.scan { position:fixed; left:0; right:0; height:1px; top:0;
+  background:linear-gradient(90deg,transparent,var(--ac),transparent);
+  opacity:.15; animation:scanmove 7s linear infinite; pointer-events:none; z-index:9990; }
+@keyframes scanmove { 0%{top:-1px} 100%{top:100vh} }
+
+/* GLOW */
+#pg { position:fixed; bottom:-40%; left:50%; transform:translateX(-50%);
+  width:120vw; height:70vh; border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,53,53,.08) 0%,transparent 70%);
+  pointer-events:none; z-index:-1; transition:background 1.2s; }
+
+/* HEADER */
+.hdr {
+  position:-webkit-sticky; position:sticky; top:0; z-index:200;
+  background:rgba(7,7,13,.97); backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:9px 14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.logo { font-size:.88rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ac); text-shadow:0 0 16px currentColor; white-space:nowrap; flex-shrink:0; }
+.logo-num { opacity:.55; margin-right:.15em; }
+
+.hdr-right { display:flex; align-items:center; gap:6px; margin-left:auto; flex-wrap:wrap; }
+.hbtn { height:28px; padding:0 9px; border-radius:6px;
+  border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05);
+  color:rgba(232,232,240,.55); font-size:.67rem; font-weight:600; cursor:pointer;
+  font-family:inherit; white-space:nowrap; touch-action:manipulation;
+  transition:background .15s,color .15s; }
+.hbtn:active { background:rgba(255,255,255,.13); color:#e8e8f0; }
+.hbtn[disabled] { opacity:.2; pointer-events:none; }
+.hbtn.r1 { border-color:rgba(255,80,80,.45); color:rgba(255,140,140,.85);
+  background:rgba(255,50,50,.1); animation:pwarn .6s ease infinite alternate; }
+.hbtn.r2 { border-color:#ff2020; color:#fff; background:rgba(255,20,20,.25);
+  animation:pwarn .3s ease infinite alternate; }
+@keyframes pwarn { from{box-shadow:none} to{box-shadow:0 0 10px rgba(255,40,40,.5)} }
+
+.prof-bar { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.pchip { display:flex; align-items:center; gap:4px; height:26px; padding:0 9px;
+  border-radius:13px; border:1.5px solid; background:transparent;
+  font-size:.68rem; font-weight:700; cursor:pointer; font-family:inherit;
+  touch-action:manipulation; transition:all .15s; }
+.pchip:not(.on) { opacity:.32; }
+.pdel { display:flex; align-items:center; justify-content:center;
+  width:13px; height:13px; border-radius:50%; background:rgba(0,0,0,.45);
+  color:rgba(255,255,255,.65); font-size:.58rem; cursor:pointer;
+  touch-action:manipulation; flex-shrink:0; }
+.btn-add { width:26px; height:26px; border-radius:50%;
+  border:1.5px dashed rgba(255,255,255,.22); background:transparent;
+  color:rgba(255,255,255,.32); font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:manipulation; transition:all .15s; flex-shrink:0; }
+.btn-add:active { border-color:rgba(255,255,255,.55); color:rgba(255,255,255,.75); }
+
+/* BIG PROGRESS BAR */
+.prog-wrap {
+  background:rgba(255,255,255,.04); border-bottom:1px solid rgba(255,255,255,.06);
+  position:relative; height:28px; overflow:hidden;
+}
+.prog-fill {
+  position:absolute; left:0; top:0; bottom:0; width:0%;
+  background:var(--ac); box-shadow:0 0 20px var(--ac);
+  transition:width .8s cubic-bezier(.4,0,.2,1), background 1.2s, box-shadow 1.2s;
+}
+.prog-text {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:.72rem; font-weight:700; letter-spacing:.04em;
+  color:rgba(255,255,255,.9); text-shadow:0 1px 4px rgba(0,0,0,.8); z-index:1;
+  white-space:nowrap; gap:8px;
+}
+.prog-pct { font-size:.85rem; font-weight:800; }
+
+/* LAYOUT */
+.layout { display:flex; gap:16px; align-items:flex-start;
+  max-width:1300px; margin:0 auto; padding:18px 14px; }
+.cal-panel { flex:1; min-width:0; }
+.chat-panel {
+  width:290px; flex-shrink:0;
+  position:-webkit-sticky; position:sticky; top:88px; /* header+progbar */
+  max-height:calc(100vh - 100px);
+  display:flex; flex-direction:column;
+  background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.07);
+  border-radius:14px; overflow:hidden;
+}
+@media(max-width:760px){
+  .layout { flex-direction:column; }
+  .chat-panel { width:100%; position:static; max-height:340px; }
+}
+
+/* LEGEND */
+.legend { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:11px; }
+.litem { display:flex; align-items:center; gap:5px; font-size:.73rem; cursor:pointer;
+  padding:4px 8px; border-radius:20px; border:1px solid transparent;
+  touch-action:manipulation; transition:all .15s; }
+.litem.on { border-color:rgba(255,255,255,.13); background:rgba(255,255,255,.04); }
+.ldot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.ldel { margin-left:3px; padding:2px 5px; border-radius:8px;
+  background:rgba(255,60,60,.13); color:rgba(255,110,110,.7);
+  font-size:.58rem; font-weight:700; cursor:pointer;
+  touch-action:manipulation; border:none; font-family:inherit; }
+.ldel:active { background:rgba(255,60,60,.35); color:#fff; }
+
+/* BANNERS */
+.banner { border-radius:9px; padding:9px 13px; margin-bottom:11px;
+  font-size:.78rem; line-height:1.55; }
+.b-ok   { background:rgba(6,214,160,.08); border:1px solid rgba(6,214,160,.25); color:#06d6a0; }
+.b-hint { background:rgba(255,255,255,.012); border:1px solid rgba(255,255,255,.05);
+  color:rgba(232,232,240,.28); }
+
+/* MONTHS */
+.mgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(265px,1fr)); gap:14px; }
+.mcard { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.07);
+  border-radius:13px; padding:14px; transition:border-color .3s; }
+.mhdr { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+.mname { font-size:.94rem; font-weight:600; }
+.myr   { font-size:.68rem; color:rgba(232,232,240,.28); }
+
+/* CAL CELLS */
+.cgrid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.chd { text-align:center; font-size:.52rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; padding:3px 0; color:rgba(232,232,240,.22); }
+.chd:nth-child(6),.chd:nth-child(7) { color:var(--ac); opacity:.7; }
+
+.cc { aspect-ratio:1; border-radius:5px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-size:.75rem;
+  position:relative; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+.cc.we { background:rgba(255,255,255,.038); border:1px solid rgba(255,255,255,.08);
+  cursor:pointer; transition:background .12s,transform .12s; }
+.cc.we:active { background:rgba(255,255,255,.12); transform:scale(1.08); }
+.cc.wd { background:rgba(255,255,255,.016); border:1px solid rgba(255,255,255,.045);
+  cursor:pointer; color:rgba(232,232,240,.52);
+  transition:background .12s,transform .12s; }
+.cc.wd:active { background:rgba(255,255,255,.09); transform:scale(1.08); }
+.cc.past { opacity:.13; pointer-events:none !important; }
+.cc.tod { border:1px solid var(--ac) !important; box-shadow:0 0 0 1px var(--ac); }
+.cc.no-chunk { opacity:.22; pointer-events:none !important; cursor:default; }
+
+.drow { position:absolute; bottom:2px; display:flex; gap:2px;
+  justify-content:center; flex-wrap:wrap; padding:0 2px; max-width:100%; }
+.dot { width:4px; height:4px; border-radius:50%; flex-shrink:0; }
+
+/* ZAP */
+@keyframes zap {
+  0%   {transform:scale(1);  filter:brightness(1);  opacity:1}
+  15%  {transform:scale(1.5);filter:brightness(5)}
+  50%  {transform:scale(.7) rotate(12deg);filter:brightness(.5);opacity:.6}
+  100% {transform:scale(0)  rotate(28deg);opacity:0}
+}
+.zapping { animation:zap .5s cubic-bezier(.4,0,.2,1) forwards; pointer-events:none; }
+
+/* PARTICLES */
+@keyframes pfly { to{transform:translate(var(--px),var(--py)) scale(0);opacity:0} }
+.pt { position:fixed; width:5px; height:5px; border-radius:50%;
+  pointer-events:none; z-index:9999;
+  animation:pfly var(--dur,.65s) ease-out forwards; }
+@keyframes ringout { from{width:6px;height:6px;opacity:1} to{width:70px;height:70px;opacity:0} }
+
+/* EMPTY STATE */
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:60px 16px; text-align:center; gap:11px; }
+.etitle { font-size:1.35rem; font-weight:700; letter-spacing:-.02em; }
+.esub { color:rgba(232,232,240,.35); font-size:.84rem; max-width:340px; line-height:1.65; }
+.ecta { margin-top:8px; padding:12px 26px; border-radius:11px; background:var(--ac);
+  color:#fff; border:none; font-size:.9rem; font-weight:600; cursor:pointer;
+  font-family:inherit; touch-action:manipulation; box-shadow:0 0 20px rgba(255,53,53,.3);
+  transition:transform .15s; }
+.ecta:active { transform:scale(.97); }
+
+/* CHAT PANEL */
+.chat-hdr { padding:11px 14px; border-bottom:1px solid rgba(255,255,255,.07);
+  font-size:.78rem; font-weight:700; letter-spacing:.05em; color:rgba(232,232,240,.55);
+  text-transform:uppercase; flex-shrink:0; }
+.chat-msgs { flex:1; overflow-y:auto; overflow-x:hidden; padding:10px;
+  display:flex; flex-direction:column; gap:8px;
+  -webkit-overflow-scrolling:touch; }
+.chat-msgs::-webkit-scrollbar { width:3px; }
+.chat-msgs::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:2px; }
+.msg { display:flex; flex-direction:column; gap:3px; }
+.msg-meta { display:flex; align-items:center; gap:5px; }
+.msg-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.msg-name { font-size:.65rem; font-weight:700; }
+.msg-time { font-size:.6rem; color:rgba(232,232,240,.3); }
+.msg-text { font-size:.78rem; color:rgba(232,232,240,.75); line-height:1.45;
+  padding-left:11px; word-break:break-word; }
+.msg.system .msg-text { color:rgba(232,232,240,.3); font-style:italic;
+  font-size:.7rem; padding-left:0; text-align:center; }
+.chat-input-wrap { padding:9px; border-top:1px solid rgba(255,255,255,.07); flex-shrink:0; }
+.chat-row { display:flex; gap:6px; }
+.chat-inp { flex:1; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:9px 11px; color:#e8e8f0; font-size:.82rem;
+  outline:none; font-family:inherit; -webkit-appearance:none;
+  transition:border-color .2s; }
+.chat-inp:focus { border-color:rgba(255,255,255,.25); }
+.chat-send { height:36px; width:36px; border-radius:8px; border:none;
+  background:var(--ac); color:#fff; font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:manipulation; transition:opacity .15s; flex-shrink:0; }
+.chat-send:active { opacity:.7; }
+.chat-no-profile { padding:12px; font-size:.72rem; color:rgba(232,232,240,.28);
+  text-align:center; }
+
+/* MODAL */
+.ov { position:fixed; inset:0; z-index:500;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .22s; }
+.ov.open { opacity:1; pointer-events:all; }
+.ov-bg { position:absolute; inset:0; background:rgba(0,0,0,.78); backdrop-filter:blur(10px); }
+.modal { position:relative; z-index:1; background:#0d0d19;
+  border:1px solid rgba(255,255,255,.13); border-radius:18px; padding:24px;
+  width:330px; max-width:calc(100vw - 28px);
+  transform:translateY(14px) scale(.96); transition:transform .22s; }
+.ov.open .modal { transform:translateY(0) scale(1); }
+.modal h2 { font-size:1.05rem; font-weight:600; margin-bottom:18px; }
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:.63rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.09em; color:rgba(232,232,240,.35); margin-bottom:6px; }
+.field input { width:100%; background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.11); border-radius:9px;
+  padding:11px 13px; color:#e8e8f0; font-size:1rem;
+  outline:none; transition:border-color .2s; font-family:inherit; -webkit-appearance:none; }
+.field input:focus { border-color:rgba(255,255,255,.3); }
+.field input.err   { border-color:#ff3535 !important; }
+.cpick { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
+.copt { aspect-ratio:1; border-radius:8px; cursor:pointer; border:2px solid transparent;
+  position:relative; touch-action:manipulation; transition:transform .15s,border-color .15s; }
+.copt:active { transform:scale(1.1); }
+.copt.sel { border-color:#fff; transform:scale(1.1); box-shadow:0 0 10px rgba(255,255,255,.22); }
+.copt.sel::after { content:'✓'; position:absolute; inset:0; display:grid;
+  place-items:center; color:#fff; font-size:.68rem; font-weight:800;
+  text-shadow:0 1px 4px rgba(0,0,0,.7); }
+.mbtns { display:flex; gap:8px; margin-top:18px; }
+.mbtn { flex:1; padding:11px; border-radius:9px; border:none;
+  font-size:.86rem; font-weight:600; cursor:pointer;
+  font-family:inherit; touch-action:manipulation; transition:opacity .15s; }
+.mbtn:active { opacity:.75; }
+.mbtn-g { background:rgba(255,255,255,.08); color:#e8e8f0; }
+.mbtn-p { background:var(--ac); color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="scan"></div>
+<div id="pg"></div>
+
+<header class="hdr">
+  <div class="logo"><span class="logo-num">13.</span> WeekendFinder</div>
+  <div class="hdr-right">
+    <div class="hdr-btns" style="display:flex;gap:5px;">
+      <button class="hbtn" id="btnUndo">↩ Vissza</button>
+      <button class="hbtn" id="btnReset">⚠ Reset</button>
+    </div>
+    <div class="prof-bar" id="profBar"></div>
+  </div>
+</header>
+
+<div class="prog-wrap">
+  <div class="prog-fill" id="progFill"></div>
+  <div class="prog-text">
+    <span class="prog-pct" id="progPct">0%</span>
+    <span id="progLbl" style="color:rgba(255,255,255,.55)"></span>
+  </div>
+</div>
+
+<div class="layout" id="layout">
+  <div class="cal-panel" id="calPanel"></div>
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-hdr">💬 Üzenőfal</div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chat-input-wrap" id="chatInputWrap"></div>
+  </div>
+</div>
+
+<div class="ov" id="ov">
+  <div class="ov-bg" id="ovBg"></div>
+  <div class="modal">
+    <h2>Profil létrehozása</h2>
+    <div class="field">
+      <label>Neved</label>
+      <input type="text" id="inpName" placeholder="pl. Anna" maxlength="20" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Válassz színt</label>
+      <div class="cpick" id="cpick"></div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn mbtn-g" id="btnCancel">Mégse</button>
+      <button class="mbtn mbtn-p" id="btnSave">Létrehozás</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var MNAMES = ['Január','Február','Március','Április','Május','Június',
+              'Július','Augusztus','Szeptember','Október','November','December'];
+var DSHORT = ['H','K','Sze','Cs','P','Szo','V'];
+var DFULL  = ['Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat','Vasárnap'];
+var SUMMER = [5,6,7];
+var COLORS = ['#00e5ff','#ff1f7d','#ff6e00','#a259ff','#2979ff',
+              '#ffd600','#00e676','#ff4081','#64ffda','#e040fb'];
+var SK = 'wf_v4';
+
+// ── STATE ────────────────────────────────────────────
+var S = (function(){
+  try {
+    var v = JSON.parse(localStorage.getItem(SK)||'{}');
+    v.profiles  = v.profiles  || [];
+    v.elim      = v.elim      || {};   // dateKey -> true  (eliminated dates)
+    v.history   = v.history   || [];   // [{manual, cascade:[]}]
+    v.messages  = v.messages  || [];   // [{id,pid,name,color,text,ts}]
+    v.current   = v.current   || null;
+    return v;
+  } catch(e) {
+    return {profiles:[],elim:{},history:[],messages:[],current:null};
+  }
+})();
+
+function persist(){ try{ localStorage.setItem(SK,JSON.stringify(S)); }catch(e){} }
+
+// ── DATE UTILS ───────────────────────────────────────
+function pad(n){ return n<10?'0'+n:''+n; }
+function dkey(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
+function parseKey(k){ var p=k.split('-'); return {y:+p[0],m:+p[1]-1,d:+p[2]}; }
+function jsday(y,m,d){ return new Date(y,m,d).getDay(); }
+function isWE(y,m,d){ var w=jsday(y,m,d); return w===0||w===6; }
+function monOff(y,m,d){ var w=jsday(y,m,d); return w===0?6:w-1; }
+function dim(y,m){ return new Date(y,m+1,0).getDate(); }
+function isPast(y,m,d){ var t=new Date(); t.setHours(0,0,0,0); return new Date(y,m,d)<t; }
+function isToday(y,m,d){ var t=new Date(); return t.getFullYear()===y&&t.getMonth()===m&&t.getDate()===d; }
+function sumYear(){ var n=new Date(); return n.getMonth()>7?n.getFullYear()+1:n.getFullYear(); }
+
+function shiftDate(y,m,d,delta){
+  var dt=new Date(y,m,d); dt.setDate(dt.getDate()+delta);
+  return {y:dt.getFullYear(),m:dt.getMonth(),d:dt.getDate()};
+}
+
+// All summer dates as keys (regardless of past/elim)
+function allSummerKeys(){
+  var out=[], y=sumYear();
+  SUMMER.forEach(function(mo){
+    for(var d=1,n=dim(y,mo);d<=n;d++) out.push(dkey(y,mo,d));
+  });
+  return out;
+}
+
+// ── CONSECUTIVE-3 VIABILITY ──────────────────────────
+// A date is viable if it belongs to at least one 3-consecutive-day window
+// where all 3 days exist in the summer range AND none are eliminated.
+function computeViable(){
+  var sumKeys={};
+  allSummerKeys().forEach(function(k){ sumKeys[k]=true; });
+
+  // available = summer keys that are not eliminated
+  var avail={};
+  Object.keys(sumKeys).forEach(function(k){ if(!S.elim[k]) avail[k]=true; });
+
+  // Iteratively remove keys that cannot form a 3-day window
+  var changed=true;
+  while(changed){
+    changed=false;
+    var remove=[];
+    Object.keys(avail).forEach(function(k){
+      if(!has3Window(k,avail)) remove.push(k);
+    });
+    remove.forEach(function(k){ delete avail[k]; changed=true; });
+  }
+  return avail; // keys that are still viable
+}
+
+function has3Window(key,availSet){
+  var k=parseKey(key);
+  for(var off=-2;off<=0;off++){
+    var ok=true;
+    for(var i=0;i<3;i++){
+      var s=shiftDate(k.y,k.m,k.d,off+i);
+      if(!availSet[dkey(s.y,s.m,s.d)]){ ok=false; break; }
+    }
+    if(ok) return true;
+  }
+  return false;
+}
+
+// After eliminating a key, compute what additionally becomes non-viable (cascade)
+function computeCascade(manualKey){
+  // viable before
+  var beforeElim = S.elim;
+  // viable after manual elim already applied
+  var viable = computeViable();
+  var cascade=[];
+  allSummerKeys().forEach(function(k){
+    if(k===manualKey) return;
+    if(!S.elim[k] && !viable[k]) cascade.push(k);
+  });
+  return cascade;
+}
+
+// ── PROGRESS ─────────────────────────────────────────
+function calcStats(){
+  var viable=computeViable();
+  var y=sumYear(), totalDays=0, remDays=0, remWE=0, elimCount=0;
+  allSummerKeys().forEach(function(k){
+    if(!isPast(parseKey(k).y,parseKey(k).m,parseKey(k).d)) totalDays++;
+  });
+  Object.keys(viable).forEach(function(k){
+    var p=parseKey(k);
+    if(!isPast(p.y,p.m,p.d)){ remDays++; if(isWE(p.y,p.m,p.d)) remWE++; }
+  });
+  elimCount=totalDays-remDays;
+  return { pct:totalDays?elimCount/totalDays:0, remDays:remDays, remWE:remWE, totalDays:totalDays };
+}
+
+function setAccent(pct){
+  var h=Math.round(pct*120);
+  var c='hsl('+h+',88%,58%)';
+  document.documentElement.style.setProperty('--ac',c);
+  document.getElementById('pg').style.background=
+    'radial-gradient(ellipse,hsla('+h+',88%,38%,.1) 0%,transparent 70%)';
+  var fill=document.getElementById('progFill');
+  fill.style.background=c;
+  fill.style.boxShadow='0 0 24px '+c;
+}
+
+function updateProgress(){
+  var s=calcStats();
+  var pct=Math.round(s.pct*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+  var lbl;
+  if(!S.profiles.length) lbl='Hozz létre profilt a kezdéshez';
+  else if(s.remDays===0)  lbl='Nincs több elérhető nap!';
+  else                    lbl=s.remDays+' nap / '+s.remWE+' hétvégi nap maradt';
+  document.getElementById('progLbl').textContent=lbl;
+  setAccent(s.pct);
+  document.getElementById('btnUndo').disabled=S.history.length===0;
+}
+
+// ── PROFILE BAR ──────────────────────────────────────
+function renderProfBar(){
+  var bar=document.getElementById('profBar');
+  var html=S.profiles.map(function(p){
+    var on=p.id===S.current;
+    return '<button class="pchip'+(on?' on':'')+'" data-id="'+p.id+'"'+
+      ' style="color:'+p.color+';border-color:'+p.color+';'+
+      (on?'background:'+p.color+'20;box-shadow:0 0 10px '+p.color+'40;':'')+'">' +
+      p.name+
+      '<span class="pdel" data-del="'+p.id+'">×</span>'+
+      '</button>';
+  }).join('');
+  html+='<button class="btn-add" id="btnAdd">+</button>';
+  bar.innerHTML=html;
+  bar.querySelectorAll('.pchip').forEach(function(b){
+    b.addEventListener('click',function(e){
+      if(e.target.dataset.del){ e.stopPropagation(); deleteProfile(e.target.dataset.del); return; }
+      switchProfile(this.dataset.id);
+    });
+  });
+  bar.querySelectorAll('.pdel').forEach(function(x){
+    x.addEventListener('click',function(e){ e.stopPropagation(); deleteProfile(this.dataset.del); });
+  });
+  document.getElementById('btnAdd').addEventListener('click',openModal);
+}
+
+function switchProfile(id){ S.current=id; persist(); renderProfBar(); renderCal(); renderChatInput(); }
+
+function deleteProfile(id){
+  S.profiles=S.profiles.filter(function(p){ return p.id!==id; });
+  if(S.current===id)
+    S.current=S.profiles.length?S.profiles[S.profiles.length-1].id:null;
+  persist();
+  renderProfBar(); renderCal(); updateProgress(); renderChatInput();
+}
+
+// ── CALENDAR ─────────────────────────────────────────
+function renderCal(){
+  var panel=document.getElementById('calPanel');
+  var chatPanel=document.getElementById('chatPanel');
+  if(!S.profiles.length){
+    panel.innerHTML='';
+    chatPanel.style.display='none';
+    document.getElementById('layout').style.justifyContent='center';
+    // Render empty state outside the flex child so it fills the whole row
+    panel.style.flex='none';
+    panel.style.width='100%';
+    panel.innerHTML=
+      '<div class="empty">'+
+        '<div class="etitle">Találjuk meg a nyári hétvégét! ☀️</div>'+
+        '<div class="esub">Hozz létre egy profilt, majd kattints egy napra a kizáráshoz. '+
+        'Ha a 3 egymást követő szabad nap megbomlik, a magányos napok automatikusan eltűnnek.</div>'+
+        '<button class="ecta" id="ctaBtn">Profil létrehozása</button>'+
+      '</div>';
+    document.getElementById('ctaBtn').addEventListener('click',openModal);
+    return;
+  }
+  // Restore normal layout when profiles exist
+  chatPanel.style.display='';
+  panel.style.flex='';
+  panel.style.width='';
+
+  var s=calcStats(), html='';
+
+  // Legend
+  html+='<div class="legend">';
+  S.profiles.forEach(function(p){
+    var on=p.id===S.current;
+    html+='<div class="litem'+(on?' on':'')+'" data-sw="'+p.id+'"'+
+      ' style="'+(on?'color:'+p.color+';':'')+'">' +
+      '<div class="ldot" style="background:'+p.color+';box-shadow:0 0 5px '+p.color+'"></div>'+
+      p.name+(on?' ◂':'')+
+      '<button class="ldel" data-del="'+p.id+'">töröl</button></div>';
+  });
+  html+='</div>';
+
+  if(s.remDays>0&&s.remDays<=7){
+    html+='<div class="banner b-ok">🎉 '+(s.remDays===1
+      ?'Csak 1 nap maradt – megvan a találkozó időpontja!'
+      :'Már csak '+s.remDays+' nap maradt ('+s.remWE+' hétvégi nap)!'
+    )+'</div>';
+  }
+
+  html+='<div class="banner b-hint">Kattints egy napra a kizárásához. '+
+    'Ahol már nem lehetséges 3 egymást követő szabad nap (= 2 éjszaka), '+
+    'ott a napok automatikusan is eltűnnek.</div>';
+
+  var viable=computeViable(), y=sumYear();
+  html+='<div class="mgrid">';
+  SUMMER.forEach(function(mo){ html+=buildMonth(y,mo,viable); });
+  html+='</div>';
+  panel.innerHTML=html;
+
+  panel.querySelectorAll('.litem[data-sw]').forEach(function(el){
+    el.addEventListener('click',function(e){
+      if(e.target.dataset.del) return;
+      switchProfile(this.dataset.sw);
+    });
+  });
+  panel.querySelectorAll('.ldel[data-del]').forEach(function(btn){
+    btn.addEventListener('click',function(e){ e.stopPropagation(); deleteProfile(this.dataset.del); });
+  });
+  panel.querySelectorAll('.cc[data-k]').forEach(function(cell){
+    cell.addEventListener('click',function(){ handleDay(this.dataset.k); });
+  });
+}
+
+function buildMonth(y,mo,viable){
+  var off=monOff(y,mo,1), n=dim(y,mo), cells='';
+  DSHORT.forEach(function(d){ cells+='<div class="chd">'+d+'</div>'; });
+  for(var i=0;i<off;i++) cells+='<div class="cc"></div>';
+  for(var d=1;d<=n;d++){
+    var key=dkey(y,mo,d), we=isWE(y,mo,d), past=isPast(y,mo,d), tod=isToday(y,mo,d);
+    var elim=S.elim[key];
+    var noChunk=!elim&&!viable[key]&&!past; // cascade-dead
+
+    if(elim){ cells+='<div class="cc" id="c-'+key+'"></div>'; continue; }
+
+    var cls='cc'+(we?' we':' wd')+(past?' past':'')+(tod?' tod':'')+(noChunk?' no-chunk':'');
+    var tip=DFULL[monOff(y,mo,d)]+', '+y+'. '+MNAMES[mo]+' '+d+'.';
+    var dk='';
+    if(!past&&!noChunk) dk=' data-k="'+key+'"';
+
+    cells+='<div class="'+cls+'" id="c-'+key+'"'+dk+' title="'+tip+'">'+d+'</div>';
+  }
+  return '<div class="mcard">'+
+    '<div class="mhdr"><div class="mname">'+MNAMES[mo]+'</div><div class="myr">'+y+'</div></div>'+
+    '<div class="cgrid">'+cells+'</div>'+
+    '</div>';
+}
+
+// ── DAY CLICK ────────────────────────────────────────
+function handleDay(key){
+  if(!S.current){ openModal(); return; }
+  // Compute cascade BEFORE marking elim (so current viable state is used)
+  // Temporarily mark manual key
+  S.elim[key]=true;
+  var cascade=computeCascade(key);
+  // Mark cascade
+  cascade.forEach(function(k){ S.elim[k]=true; });
+  S.history.push({manual:key, cascade:cascade});
+  persist();
+
+  // Animate: manual first, cascade with slight delay
+  var prof=S.profiles.find(function(p){ return p.id===S.current; });
+  var col=prof?prof.color:'#fff';
+  zapCell(key,col,0);
+  cascade.forEach(function(k,i){ zapCell(k,'rgba(200,200,200,0.6)',60+i*30); });
+
+  updateProgress();
+  // Re-render cal after animations settle
+  setTimeout(renderCal, cascade.length>0 ? 600 : 550);
+}
+
+function zapCell(key,col,delay){
+  setTimeout(function(){
+    var cell=document.getElementById('c-'+key); if(!cell) return;
+    var r=cell.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+    for(var i=0;i<8;i++){
+      var el=document.createElement('div'); el.className='pt';
+      var ang=(i/8)*Math.PI*2, dist=22+Math.random()*44;
+      el.style.cssText='left:'+cx+'px;top:'+cy+'px;background:'+col+';'+
+        '--px:'+(Math.cos(ang)*dist).toFixed(1)+'px;'+
+        '--py:'+(Math.sin(ang)*dist).toFixed(1)+'px;'+
+        '--dur:'+(0.4+Math.random()*0.3)+'s';
+      document.body.appendChild(el);
+      setTimeout(function(e){e.remove();},800,el);
+    }
+    var ring=document.createElement('div');
+    ring.style.cssText='position:fixed;left:'+cx+'px;top:'+cy+'px;width:6px;height:6px;'+
+      'border-radius:50%;border:2px solid '+col+';transform:translate(-50%,-50%);'+
+      'pointer-events:none;z-index:9998;animation:ringout .45s ease-out forwards;';
+    document.body.appendChild(ring);
+    setTimeout(function(){ring.remove();},500);
+    cell.classList.add('zapping');
+    setTimeout(function(){ if(cell.parentNode){ cell.className='cc'; cell.innerHTML=''; cell.removeAttribute('data-k'); } },500);
+  },delay);
+}
+
+// ── UNDO ─────────────────────────────────────────────
+function undoLast(){
+  if(!S.history.length) return;
+  var entry=S.history.pop();
+  delete S.elim[entry.manual];
+  entry.cascade.forEach(function(k){ delete S.elim[k]; });
+  persist();
+  renderCal(); updateProgress();
+}
+
+// ── RESET ────────────────────────────────────────────
+var rStage=0, rTimer=null;
+function handleReset(){
+  rStage++;
+  clearTimeout(rTimer);
+  var btn=document.getElementById('btnReset');
+  if(rStage===1){
+    btn.textContent='Biztos? (1/2)'; btn.className='hbtn r1';
+    rTimer=setTimeout(cancelReset,4000);
+  } else if(rStage===2){
+    btn.textContent='VÉGLEGESEN TÖRÖL (2/2)'; btn.className='hbtn r2';
+    rTimer=setTimeout(cancelReset,4000);
+  } else {
+    cancelReset();
+    S.elim={}; S.history=[];
+    persist(); renderCal(); updateProgress();
+  }
+}
+function cancelReset(){
+  rStage=0; clearTimeout(rTimer);
+  var btn=document.getElementById('btnReset');
+  if(btn){ btn.textContent='⚠ Reset'; btn.className='hbtn'; }
+}
+
+// ── CHAT ─────────────────────────────────────────────
+function renderChatInput(){
+  var wrap=document.getElementById('chatInputWrap');
+  if(!S.current){
+    wrap.innerHTML='<div class="chat-no-profile">Válassz profilt az üzenetküldéshez</div>';
+    return;
+  }
+  wrap.innerHTML=
+    '<div class="chat-row">'+
+      '<input class="chat-inp" id="chatInp" placeholder="Írj valamit..." maxlength="200" autocomplete="off">'+
+      '<button class="chat-send" id="chatSend">➤</button>'+
+    '</div>';
+  var inp=document.getElementById('chatInp');
+  document.getElementById('chatSend').addEventListener('click',sendMsg);
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } });
+}
+
+function sendMsg(){
+  var inp=document.getElementById('chatInp'); if(!inp) return;
+  var text=inp.value.trim(); if(!text) return;
+  var prof=S.profiles.find(function(p){ return p.id===S.current; });
+  if(!prof) return;
+  S.messages.push({id:'m'+Date.now(),pid:prof.id,name:prof.name,color:prof.color,text:text,ts:Date.now()});
+  inp.value='';
+  persist();
+  renderChatMsgs();
+}
+
+function renderChatMsgs(){
+  var box=document.getElementById('chatMsgs');
+  if(!S.messages.length){
+    box.innerHTML='<div class="msg system"><div class="msg-text">Még nincs üzenet. Légy az első! 👋</div></div>';
+    return;
+  }
+  box.innerHTML=S.messages.map(function(m){
+    var d=new Date(m.ts);
+    var t=pad(d.getHours())+':'+pad(d.getMinutes());
+    return '<div class="msg">'+
+      '<div class="msg-meta">'+
+        '<div class="msg-dot" style="background:'+m.color+';box-shadow:0 0 4px '+m.color+'"></div>'+
+        '<span class="msg-name" style="color:'+m.color+'">'+esc(m.name)+'</span>'+
+        '<span class="msg-time">'+t+'</span>'+
+      '</div>'+
+      '<div class="msg-text">'+esc(m.text)+'</div>'+
+      '</div>';
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── MODAL ────────────────────────────────────────────
+var pickedColor=COLORS[0];
+function openModal(){
+  pickedColor=COLORS[0];
+  document.getElementById('inpName').value='';
+  document.getElementById('inpName').classList.remove('err');
+  renderPicker();
+  document.getElementById('ov').classList.add('open');
+  setTimeout(function(){ document.getElementById('inpName').focus(); },300);
+}
+function closeModal(){ document.getElementById('ov').classList.remove('open'); }
+function renderPicker(){
+  document.getElementById('cpick').innerHTML=COLORS.map(function(c){
+    return '<div class="copt'+(c===pickedColor?' sel':'')+'" data-c="'+c+'" style="background:'+c+'"></div>';
+  }).join('');
+  document.getElementById('cpick').querySelectorAll('.copt').forEach(function(el){
+    el.addEventListener('click',function(){ pickedColor=this.dataset.c; renderPicker(); });
+  });
+}
+function saveProfile(){
+  var inp=document.getElementById('inpName');
+  var name=inp.value.trim();
+  if(!name){ inp.classList.add('err'); inp.focus(); return; }
+  inp.classList.remove('err');
+  var prof={id:'p'+Date.now(),name:name,color:pickedColor};
+  S.profiles.push(prof); S.current=prof.id;
+  persist(); closeModal();
+  renderProfBar(); renderCal(); renderChatInput(); updateProgress();
+}
+
+// ── WIRE STATIC BUTTONS ──────────────────────────────
+document.getElementById('ovBg').addEventListener('click',closeModal);
+document.getElementById('btnCancel').addEventListener('click',closeModal);
+document.getElementById('btnSave').addEventListener('click',saveProfile);
+document.getElementById('btnUndo').addEventListener('click',undoLast);
+document.getElementById('btnReset').addEventListener('click',handleReset);
+document.getElementById('inpName').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){ e.preventDefault(); saveProfile(); }
+});
+
+// ── INIT ─────────────────────────────────────────────
+renderProfBar();
+renderCal();
+renderChatMsgs();
+renderChatInput();
+updateProgress();
+
+})();
+</script>
+</body>
+</html>
