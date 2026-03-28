@@ -141,7 +141,7 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 .copt{aspect-ratio:1;border-radius:8px;cursor:pointer;border:2px solid transparent;position:relative;touch-action:manipulation;transition:transform .15s,border-color .15s;}
 .copt:active{transform:scale(1.1);}
 .copt.sel{border-color:#fff;transform:scale(1.1);box-shadow:0 0 10px rgba(255,255,255,.22);}
-.copt.sel::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:.68rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,.7);}
+.copt.sel::after{content:'Ôťô';position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:.68rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,.7);}
 .mbtns{display:flex;gap:8px;margin-top:18px;}
 .mbtn{flex:1;padding:11px;border-radius:9px;border:none;font-size:.86rem;font-weight:600;cursor:pointer;font-family:inherit;touch-action:manipulation;transition:opacity .15s;}
 .mbtn:active{opacity:.75;}
@@ -157,9 +157,9 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 <header class="hdr">
   <div class="logo"><span class="logo-num">13.</span> WeekendFinder</div>
   <div class="hdr-right">
-    <div class="conn-dot" id="connDot" title="Kapcsolat állapota"></div>
-    <button class="hbtn" id="btnUndo">↩ Vissza</button>
-    <button class="hbtn" id="btnReset">⚠ Reset</button>
+    <div class="conn-dot" id="connDot" title="Kapcsolat ├íllapota"></div>
+    <button class="hbtn" id="btnUndo">Ôćę Vissza</button>
+    <button class="hbtn" id="btnReset">ÔÜá Reset</button>
     <div class="prof-bar" id="profBar"></div>
   </div>
 </header>
@@ -174,10 +174,10 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 
 <div class="layout" id="layout">
   <div class="cal-panel" id="calPanel">
-    <div class="connecting"><div class="spin"></div><span style="font-size:.8rem;color:rgba(232,232,240,.35)">Csatlakozás...</span></div>
+    <div class="connecting"><div class="spin"></div><span style="font-size:.8rem;color:rgba(232,232,240,.35)">Csatlakoz├ís...</span></div>
   </div>
   <div class="chat-panel" id="chatPanel">
-    <div class="chat-hdr">💬 Üzenőfal</div>
+    <div class="chat-hdr">­čĺČ ├ťzen┼Ĺfal</div>
     <div class="chat-msgs" id="chatMsgs"></div>
     <div class="chat-foot" id="chatFoot"></div>
   </div>
@@ -187,18 +187,18 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 <div class="ov" id="profOv">
   <div class="ov-bg" id="profOvBg"></div>
   <div class="modal">
-    <h2>Profil létrehozása</h2>
+    <h2>Profil l├ętrehoz├ísa</h2>
     <div class="field">
       <label>Neved</label>
       <input type="text" id="inpName" placeholder="pl. Anna" maxlength="20" autocomplete="off">
     </div>
     <div class="field">
-      <label>Válassz színt</label>
+      <label>V├ílassz sz├şnt</label>
       <div class="cpick" id="cpick"></div>
     </div>
     <div class="mbtns">
-      <button class="mbtn mbtn-g" id="btnCancel">Mégse</button>
-      <button class="mbtn mbtn-p" id="btnSave">Létrehozás</button>
+      <button class="mbtn mbtn-g" id="btnCancel">M├ęgse</button>
+      <button class="mbtn mbtn-p" id="btnSave">L├ętrehoz├ís</button>
     </div>
   </div>
 </div>
@@ -209,20 +209,20 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 
 var DB_URL = 'https://analysis-paralysis-70949-default-rtdb.europe-west1.firebasedatabase.app';
 
-var MNAMES=['Január','Február','Március','Április','Május','Június','Július','Augusztus','Szeptember','Október','November','December'];
+var MNAMES=['Janu├ír','Febru├ír','M├írcius','├üprilis','M├íjus','J├║nius','J├║lius','Augusztus','Szeptember','Okt├│ber','November','December'];
 var DSHORT=['H','K','Sze','Cs','P','Szo','V'];
-var DFULL=['Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat','Vasárnap'];
+var DFULL=['H├ętf┼Ĺ','Kedd','Szerda','Cs├╝t├Ârt├Âk','P├ęntek','Szombat','Vas├írnap'];
 var SUMMER=[5,6,7];
 var COLORS=['#00e5ff','#ff1f7d','#ff6e00','#a259ff','#2979ff','#ffd600','#00e676','#ff4081','#64ffda','#e040fb'];
 
-// Remote state (Firebase) — shared across all devices
+// Remote state (Firebase) ÔÇö shared across all devices
 var R = { profiles:{}, elim:{}, history:{}, messages:{} };
 
-// Local state — per device only
+// Local state ÔÇö per device only
 var L = { current: localStorage.getItem('wf_current') || null };
 function saveLocal(){ localStorage.setItem('wf_current', L.current||''); }
 
-// ── DATE UTILS ────────────────────────────────────────
+// ÔöÇÔöÇ DATE UTILS ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function pad(n){ return n<10?'0'+n:''+n; }
 function dkey(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
 function parseKey(k){ var p=k.split('-'); return {y:+p[0],m:+p[1]-1,d:+p[2]}; }
@@ -241,7 +241,7 @@ function allSummerKeys(){
   return out;
 }
 
-// ── CONSECUTIVE-3 VIABILITY ───────────────────────────
+// ÔöÇÔöÇ CONSECUTIVE-3 VIABILITY ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function computeViable(){
   var avail={};
   allSummerKeys().forEach(function(k){ if(!R.elim[k]) avail[k]=true; });
@@ -276,7 +276,7 @@ function computeCascade(manualKey){
   return cascade;
 }
 
-// ── FIREBASE ──────────────────────────────────────────
+// ÔöÇÔöÇ FIREBASE ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 var wfRef;
 
 firebase.initializeApp({ databaseURL: DB_URL });
@@ -300,9 +300,9 @@ wfRef.on('value', function(snap){
   setConn(false);
   var panel=document.getElementById('calPanel');
   panel.innerHTML='<div class="connecting"><span style="font-size:.82rem;color:#ff5555;text-align:center;line-height:1.7">'+
-    '⚠ Nem sikerült csatlakozni<br>'+
+    'ÔÜá Nem siker├╝lt csatlakozni<br>'+
     '<span style="font-size:.7rem;opacity:.6">'+err.code+': '+err.message+'</span><br><br>'+
-    '<span style="font-size:.7rem;opacity:.5">Ellenőrizd a Firebase szabályokat:<br>'+
+    '<span style="font-size:.7rem;opacity:.5">Ellen┼Ĺrizd a Firebase szab├ílyokat:<br>'+
     '{"rules":{".read":true,".write":true}}</span>'+
     '</span></div>';
 });
@@ -315,7 +315,7 @@ function setConn(ok){
   d.title=ok?'Csatlakozva':'Nincs kapcsolat';
 }
 
-// ── PROFILES ──────────────────────────────────────────
+// ÔöÇÔöÇ PROFILES ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function profilesArr(){
   return Object.values(R.profiles).sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
 }
@@ -328,7 +328,7 @@ function renderProfBar(){
       ' style="color:'+p.color+';border-color:'+p.color+';'+
       (on?'background:'+p.color+'20;box-shadow:0 0 10px '+p.color+'40;':'')+'">' +
       esc(p.name)+
-      '<span class="pdel" data-del="'+p.id+'">×</span></button>';
+      '<span class="pdel" data-del="'+p.id+'">├Ś</span></button>';
   }).join('');
   html += '<button class="btn-add" id="btnAddP">+</button>';
   bar.innerHTML=html;
@@ -357,7 +357,7 @@ function deleteProfile(id){
   }
 }
 
-// ── CALENDAR ──────────────────────────────────────────
+// ÔöÇÔöÇ CALENDAR ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function renderCal(){
   var panel=document.getElementById('calPanel');
   var arr=profilesArr();
@@ -368,10 +368,10 @@ function renderCal(){
     panel.style.cssText='flex:none;width:100%';
     panel.innerHTML=
       '<div class="empty">'+
-        '<div class="etitle">Találjuk meg a nyári hétvégét! ☀️</div>'+
-        '<div class="esub">Hozz létre egy profilt, majd kattints egy napra a kizárásához. '+
-        'Ahol nem fér már el 3 egymást követő szabad nap (2 éjszaka), azok automatikusan eltűnnek.</div>'+
-        '<button class="ecta" id="ctaBtn">Profil létrehozása</button>'+
+        '<div class="etitle">Tal├íljuk meg a ny├íri h├ętv├ęg├ęt! ÔśÇ´ŞĆ</div>'+
+        '<div class="esub">Hozz l├ętre egy profilt, majd kattints egy napra a kiz├ír├ís├íhoz. '+
+        'Ahol nem f├ęr m├ír el 3 egym├íst k├Âvet┼Ĺ szabad nap (2 ├ęjszaka), azok automatikusan elt┼▒nnek.</div>'+
+        '<button class="ecta" id="ctaBtn">Profil l├ętrehoz├ísa</button>'+
       '</div>';
     document.getElementById('ctaBtn').addEventListener('click', openProfModal);
     return;
@@ -386,18 +386,18 @@ function renderCal(){
     var on=p.id===L.current;
     html+='<div class="litem'+(on?' on':'')+'" data-sw="'+p.id+'" style="'+(on?'color:'+p.color+';':'')+'">' +
       '<div class="ldot" style="background:'+p.color+';box-shadow:0 0 5px '+p.color+'"></div>'+
-      esc(p.name)+(on?' ◂':'')+
-      '<button class="ldel" data-del="'+p.id+'">töröl</button></div>';
+      esc(p.name)+(on?' ÔŚé':'')+
+      '<button class="ldel" data-del="'+p.id+'">t├Âr├Âl</button></div>';
   });
   html+='</div>';
 
   if(s.remDays>0&&s.remDays<=7)
-    html+='<div class="banner b-ok">🎉 Már csak '+s.remDays+' nap maradt ('+s.remWE+' hétvégi) – hamarosan megvan a dátum!</div>';
+    html+='<div class="banner b-ok">­čÄë M├ír csak '+s.remDays+' nap maradt ('+s.remWE+' h├ętv├ęgi) ÔÇô hamarosan megvan a d├ítum!</div>';
   if(s.remDays===0)
-    html+='<div class="banner b-ok">Minden nap kizárva! Vonj vissza néhány lépést, vagy állítsd vissza a naptárat.</div>';
+    html+='<div class="banner b-ok">Minden nap kiz├írva! Vonj vissza n├ęh├íny l├ęp├ęst, vagy ├íll├ştsd vissza a napt├írat.</div>';
 
-  html+='<div class="banner b-hint">Kattints egy napra — azonnal eltűnik mindenkinél. '+
-    'Ha már nem fér el 3 egymást követő szabad nap (= 2 éjszaka), azok is automatikusan eltűnnek.</div>';
+  html+='<div class="banner b-hint">Kattints egy napra ÔÇö azonnal elt┼▒nik mindenkin├ęl. '+
+    'Ha m├ír nem f├ęr el 3 egym├íst k├Âvet┼Ĺ szabad nap (= 2 ├ęjszaka), azok is automatikusan elt┼▒nnek.</div>';
 
   html+='<div class="mgrid">';
   SUMMER.forEach(function(mo){ html+=buildMonth(y,mo,viable); });
@@ -433,7 +433,7 @@ function buildMonth(y,mo,viable){
   return '<div class="mcard"><div class="mhdr"><div class="mname">'+MNAMES[mo]+'</div><div class="myr">'+y+'</div></div><div class="cgrid">'+cells+'</div></div>';
 }
 
-// ── DAY CLICK ─────────────────────────────────────────
+// ÔöÇÔöÇ DAY CLICK ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function handleDay(key){
   if(!L.current){ openProfModal(); return; }
   var prof=R.profiles[L.current];
@@ -452,7 +452,7 @@ function handleDay(key){
   zapCell(key, col, 0);
   cascade.forEach(function(k,i){ zapCell(k,'rgba(180,180,200,.7)', 60+i*25); });
 
-  // Write to Firebase — all other devices update via their listener
+  // Write to Firebase ÔÇö all other devices update via their listener
   var patches={};
   patches['elim/'+key]=true;
   cascade.forEach(function(k){ patches['elim/'+k]=true; });
@@ -486,7 +486,7 @@ function zapCell(key,col,delay){
   },delay);
 }
 
-// ── UNDO ──────────────────────────────────────────────
+// ÔöÇÔöÇ UNDO ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function undoLast(){
   var keys=Object.keys(R.history);
   if(!keys.length) return;
@@ -506,7 +506,7 @@ function undoLast(){
   renderAll(); updateProgress();
 }
 
-// ── RESET ─────────────────────────────────────────────
+// ÔöÇÔöÇ RESET ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 var rStage=0, rTimer=null;
 function handleReset(){
   rStage++; clearTimeout(rTimer);
@@ -515,7 +515,7 @@ function handleReset(){
     btn.textContent='Biztos? (1/2)'; btn.className='hbtn r1';
     rTimer=setTimeout(cancelReset,4000);
   } else if(rStage===2){
-    btn.textContent='VÉGLEGESEN TÖRÖL (2/2)'; btn.className='hbtn r2';
+    btn.textContent='V├ëGLEGESEN T├ľR├ľL (2/2)'; btn.className='hbtn r2';
     rTimer=setTimeout(cancelReset,4000);
   } else {
     cancelReset();
@@ -527,10 +527,10 @@ function handleReset(){
 function cancelReset(){
   rStage=0; clearTimeout(rTimer);
   var btn=document.getElementById('btnReset');
-  if(btn){ btn.textContent='⚠ Reset'; btn.className='hbtn'; }
+  if(btn){ btn.textContent='ÔÜá Reset'; btn.className='hbtn'; }
 }
 
-// ── PROGRESS ──────────────────────────────────────────
+// ÔöÇÔöÇ PROGRESS ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function calcStats(){
   var viable=computeViable(), y=sumYear(), total=0, remDays=0, remWE=0;
   allSummerKeys().forEach(function(k){
@@ -554,20 +554,20 @@ function updateProgress(){
   var s=calcStats(), pct=Math.round(s.pct*100);
   document.getElementById('progFill').style.width=pct+'%';
   document.getElementById('progPct').textContent=pct+'%';
-  var lbl=!profilesArr().length?'Hozz létre profilt a kezdéshez':
-    s.remDays===0?'Nincs több elérhető nap!':
-    s.remDays+' nap / '+s.remWE+' hétvégi nap maradt';
+  var lbl=!profilesArr().length?'Hozz l├ętre profilt a kezd├ęshez':
+    s.remDays===0?'Nincs t├Âbb el├ęrhet┼Ĺ nap!':
+    s.remDays+' nap / '+s.remWE+' h├ętv├ęgi nap maradt';
   document.getElementById('progLbl').textContent=lbl;
   setAccent(s.pct);
   document.getElementById('btnUndo').disabled=Object.keys(R.history).length===0;
 }
 
-// ── CHAT ──────────────────────────────────────────────
+// ÔöÇÔöÇ CHAT ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function renderChat(){
   var box=document.getElementById('chatMsgs');
   var msgs=Object.values(R.messages).sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
   box.innerHTML=!msgs.length
-    ?'<div class="msg sys"><div class="msg-text">Még nincs üzenet 👋</div></div>'
+    ?'<div class="msg sys"><div class="msg-text">M├ęg nincs ├╝zenet ­čĹő</div></div>'
     :msgs.map(function(m){
         var d=new Date(m.ts||0), t=pad(d.getHours())+':'+pad(d.getMinutes());
         return '<div class="msg">'+
@@ -585,13 +585,13 @@ function renderChat(){
 function renderChatInput(){
   var foot=document.getElementById('chatFoot');
   if(!L.current||!R.profiles[L.current]){
-    foot.innerHTML='<div class="chat-noprof">Válassz profilt az üzenetküldéshez</div>';
+    foot.innerHTML='<div class="chat-noprof">V├ílassz profilt az ├╝zenetk├╝ld├ęshez</div>';
     return;
   }
   foot.innerHTML=
     '<div class="chat-row">'+
-      '<input class="chat-inp" id="chatInp" placeholder="Írj valamit..." maxlength="200" autocomplete="off">'+
-      '<button class="chat-send" id="chatSend">➤</button>'+
+      '<input class="chat-inp" id="chatInp" placeholder="├Źrj valamit..." maxlength="200" autocomplete="off">'+
+      '<button class="chat-send" id="chatSend">Ô×Ą</button>'+
     '</div>';
   document.getElementById('chatSend').addEventListener('click', sendMsg);
   document.getElementById('chatInp').addEventListener('keydown',function(e){
@@ -608,7 +608,7 @@ function sendMsg(){
   inp.value='';
 }
 
-// ── PROFILE MODAL ─────────────────────────────────────
+// ÔöÇÔöÇ PROFILE MODAL ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 var pickedColor=COLORS[0];
 function openProfModal(){
   pickedColor=COLORS[0];
@@ -638,11 +638,11 @@ function saveProfile(){
   closeProfModal();
 }
 
-// ── RENDER ALL ────────────────────────────────────────
+// ÔöÇÔöÇ RENDER ALL ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 function renderAll(){ renderProfBar(); renderCal(); renderChat(); updateProgress(); }
 function esc(s){ return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── STATIC BUTTON WIRING ──────────────────────────────
+// ÔöÇÔöÇ STATIC BUTTON WIRING ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 document.getElementById('profOvBg').addEventListener('click', closeProfModal);
 document.getElementById('btnCancel').addEventListener('click', closeProfModal);
 document.getElementById('btnSave').addEventListener('click', saveProfile);
