@@ -34,7 +34,6 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 .hbtn.r2{border-color:#ff2020;color:#fff;background:rgba(255,20,20,.25);animation:pwarn .3s ease infinite alternate;}
 @keyframes pwarn{from{box-shadow:none}to{box-shadow:0 0 10px rgba(255,40,40,.5)}}
 
-
 .prof-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
 .pchip{display:flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:13px;border:1.5px solid;background:transparent;font-size:.68rem;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;transition:all .15s;}
 .pchip:not(.on){opacity:.32;}
@@ -605,7 +604,7 @@ function sendMsg(){
   var text=inp.value.trim(); if(!text) return;
   var prof=R.profiles[L.current]; if(!prof) return;
   var mid='m'+Date.now();
-  fbUpdate({'messages/'+mid: {id:mid,pid:L.current,name:prof.name,color:prof.color,text:text,ts:Date.now()}});
+  var p={}; p['messages/'+mid]={id:mid,pid:L.current,name:prof.name,color:prof.color,text:text,ts:Date.now()}; fbUpdate(p);
   inp.value='';
 }
 
@@ -635,7 +634,7 @@ function saveProfile(){
   var id='p'+Date.now();
   var prof={id:id,name:name,color:pickedColor,ts:Date.now()};
   L.current=id; saveLocal();
-  fbUpdate({'profiles/'+id:prof});
+  var p={}; p['profiles/'+id]=prof; fbUpdate(p);
   closeProfModal();
 }
 
