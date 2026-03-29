@@ -147,6 +147,18 @@ body{background:#07070d;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFo
 .mbtn:active{opacity:.75;}
 .mbtn-g{background:rgba(255,255,255,.08);color:#e8e8f0;}
 .mbtn-p{background:var(--ac);color:#fff;}
+
+/* ELIM OWNER */
+.cc.elim-used{cursor:default!important;overflow:hidden;}
+.elim-lbl{font-size:.43rem;font-weight:800;line-height:1.15;text-align:center;width:100%;padding:0 1px;pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* DONE TICKBOX */
+.pdone{display:flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;opacity:.38;font-size:.52rem;font-weight:900;cursor:pointer;touch-action:manipulation;flex-shrink:0;transition:all .15s;line-height:1;}
+.pdone:active{transform:scale(1.2);}
+.pdone.ticked{opacity:1;background:currentColor;color:#07070d;}
+.pchip.done .pname{text-decoration:line-through;opacity:.5;}
+.litem.done .lname{text-decoration:line-through;opacity:.45;}
+.ldone-badge{font-size:.58rem;opacity:.65;margin-left:2px;}
 </style>
 </head>
 <body>
@@ -323,11 +335,12 @@ function profilesArr(){
 function renderProfBar(){
   var bar=document.getElementById('profBar');
   var html=profilesArr().map(function(p){
-    var on=p.id===L.current;
-    return '<button class="pchip'+(on?' on':'')+'" data-id="'+p.id+'"'+
+    var on=p.id===L.current, done=p.done||false;
+    return '<button class="pchip'+(on?' on':'')+(done?' done':'')+'" data-id="'+p.id+'"'+
       ' style="color:'+p.color+';border-color:'+p.color+';'+
       (on?'background:'+p.color+'20;box-shadow:0 0 10px '+p.color+'40;':'')+'">' +
-      esc(p.name)+
+      '<span class="pname">'+esc(p.name)+'</span>'+
+      '<span class="pdone'+(done?' ticked':'')+'" data-done="'+p.id+'" title="'+(done?'Kész ✓ — kattints a visszavonáshoz':'Jelöld ha végeztél')+'">✓</span>'+
       '<span class="pdel" data-del="'+p.id+'">×</span></button>';
   }).join('');
   html += '<button class="btn-add" id="btnAddP">+</button>';
@@ -335,11 +348,15 @@ function renderProfBar(){
   bar.querySelectorAll('.pchip').forEach(function(b){
     b.addEventListener('click',function(e){
       if(e.target.dataset.del){ e.stopPropagation(); deleteProfile(e.target.dataset.del); return; }
+      if(e.target.dataset.done){ e.stopPropagation(); toggleDone(e.target.dataset.done); return; }
       switchProfile(this.dataset.id);
     });
   });
   bar.querySelectorAll('.pdel').forEach(function(x){
     x.addEventListener('click',function(e){ e.stopPropagation(); deleteProfile(this.dataset.del); });
+  });
+  bar.querySelectorAll('.pdone').forEach(function(x){
+    x.addEventListener('click',function(e){ e.stopPropagation(); toggleDone(this.dataset.done); });
   });
   document.getElementById('btnAddP').addEventListener('click', openProfModal);
 }
@@ -355,6 +372,17 @@ function deleteProfile(id){
     L.current=remaining.length?remaining[remaining.length-1].id:null;
     saveLocal();
   }
+}
+
+// ── ELIM WHO MAP ──────────────────────────────────────
+function buildElimWhoMap(){
+  var who={};
+  Object.values(R.history).forEach(function(entry){
+    if(entry.manual) who[entry.manual]=entry.who;
+    var cascade=Array.isArray(entry.cascade)?entry.cascade:Object.values(entry.cascade||{});
+    cascade.forEach(function(k){ if(!who[k]) who[k]=entry.who; });
+  });
+  return who;
 }
 
 // ── CALENDAR ──────────────────────────────────────────
@@ -379,14 +407,14 @@ function renderCal(){
   chatPanel.style.display='';
   panel.style.cssText='';
 
-  var s=calcStats(), viable=computeViable(), y=sumYear(), html='';
+  var s=calcStats(), viable=computeViable(), y=sumYear(), elimWho=buildElimWhoMap(), html='';
 
   html+='<div class="legend">';
   arr.forEach(function(p){
-    var on=p.id===L.current;
-    html+='<div class="litem'+(on?' on':'')+'" data-sw="'+p.id+'" style="'+(on?'color:'+p.color+';':'')+'">' +
+    var on=p.id===L.current, done=p.done||false;
+    html+='<div class="litem'+(on?' on':'')+(done?' done':'')+'" data-sw="'+p.id+'" style="'+(on?'color:'+p.color+';':'')+'">' +
       '<div class="ldot" style="background:'+p.color+';box-shadow:0 0 5px '+p.color+'"></div>'+
-      esc(p.name)+(on?' ◂':'')+
+      '<span class="lname">'+esc(p.name)+'</span>'+(done?'<span class="ldone-badge">✓</span>':'')+(on?' ◂':'')+
       '<button class="ldel" data-del="'+p.id+'">töröl</button></div>';
   });
   html+='</div>';
@@ -400,7 +428,7 @@ function renderCal(){
     'Ha már nem fér el 3 egymást követő szabad nap (= 2 éjszaka), azok is automatikusan eltűnnek.</div>';
 
   html+='<div class="mgrid">';
-  SUMMER.forEach(function(mo){ html+=buildMonth(y,mo,viable); });
+  SUMMER.forEach(function(mo){ html+=buildMonth(y,mo,viable,elimWho); });
   html+='</div>';
   panel.innerHTML=html;
 
@@ -418,13 +446,25 @@ function renderCal(){
   });
 }
 
-function buildMonth(y,mo,viable){
+function buildMonth(y,mo,viable,elimWho){
   var off=monOff(y,mo,1), n=dim(y,mo), cells='';
   DSHORT.forEach(function(d){ cells+='<div class="chd">'+d+'</div>'; });
   for(var i=0;i<off;i++) cells+='<div class="cc"></div>';
   for(var d=1;d<=n;d++){
     var key=dkey(y,mo,d), we=isWE(y,mo,d), past=isPast(y,mo,d), tod=isToday(y,mo,d);
-    if(R.elim[key]){ cells+='<div class="cc" id="c-'+key+'"></div>'; continue; }
+    if(R.elim[key]){
+      var clicker=elimWho&&elimWho[key]?R.profiles[elimWho[key]]:null;
+      if(clicker){
+        cells+='<div class="cc elim-used" id="c-'+key+'"'+
+          ' style="background:'+clicker.color+'1a;border:1px solid '+clicker.color+'55;"'+
+          ' title="'+esc(clicker.name)+' zárta ki">'+
+          '<span class="elim-lbl" style="color:'+clicker.color+'">'+esc(clicker.name.substring(0,6))+'</span>'+
+          '</div>';
+      } else {
+        cells+='<div class="cc" id="c-'+key+'"></div>';
+      }
+      continue;
+    }
     var noChunk=!viable[key]&&!past;
     var cls='cc'+(we?' we':' wd')+(past?' past':'')+(tod?' tod':'')+(noChunk?' no-chunk':'');
     var dk=(!past&&!noChunk)?' data-k="'+key+'"':'';
@@ -636,6 +676,11 @@ function saveProfile(){
   L.current=id; saveLocal();
   var p={}; p['profiles/'+id]=prof; fbUpdate(p);
   closeProfModal();
+}
+
+function toggleDone(id){
+  var prof=R.profiles[id]; if(!prof) return;
+  var p={}; p['profiles/'+id+'/done']=!prof.done; fbUpdate(p);
 }
 
 // ── RENDER ALL ────────────────────────────────────────
